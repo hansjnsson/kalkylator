@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="Kalkylator">
+<meta name="application-name" content="Kalkylator">
+<title>Kalkylator</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#000;
+  --num:#333333;
+  --num-press:#737373;
+  --fn:#5c5c5f;
+  --fn-press:#8e8e93;
+  --op:#ff9f0a;
+  --op-press:#fcc78d;
+  --text:#fff;
+  --muted:#8e8e93;
+  --sheet:#1c1c1e;
+  --cell:#2c2c2e;
+  --sep:#3a3a3c;
+  --green:#30d158;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root:not([data-theme="light"]),:root[data-theme="dark"],:root[data-theme="light"]{--bg:#000}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;background:#000;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  height:100%;margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,"SF Pro Display","SF Pro Text",system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow:hidden;
+}
+.phone{
+  position:relative;width:100%;max-width:440px;height:100%;max-height:932px;
+  container-type:inline-size;display:flex;flex-direction:column;overflow:hidden;
+}
+.topbar{padding:.5cqw 4.7cqw 0;display:flex;align-items:center;justify-content:space-between}
+.icon-btn{
+  width:10.45cqw;height:10.45cqw;border-radius:50%;border:0;padding:0;margin:0;cursor:pointer;
+  color:#fff;background:#191919;box-shadow:inset 0 0 0 1px rgba(255,255,255,.09);
+  display:grid;place-items:center;-webkit-appearance:none;appearance:none;outline:none;
+}
+.icon-btn:active{background:#2c2c2e}
+.icon-btn:focus-visible{box-shadow:0 0 0 2px #fff}
+.icon-btn svg{width:5.5cqw;height:5.5cqw;display:block}
+.display{
+  flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;
+  padding:0 4.6cqw 2.9cqw;overflow:hidden;
+}
+.expr{color:#98989d;font-size:7.35cqw;line-height:1.3;white-space:nowrap;min-height:1.3em;font-weight:400;margin:0 -.4cqw 2.2cqw 0}
+.main{font-size:16cqw;font-weight:400;line-height:1;white-space:nowrap;font-variant-numeric:lining-nums}
+.keys{
+  display:grid;grid-template-columns:repeat(4,1fr);column-gap:2.02cqw;row-gap:1.77cqw;
+  padding:0 3.8cqw 6cqw;
+}
+.key{
+  position:relative;overflow:hidden;aspect-ratio:1;border:0;border-radius:50%;margin:0;padding:0;cursor:pointer;
+  font:inherit;font-size:9cqw;font-weight:400;color:#fff;
+  background-color:#2a2a2b;
+  background-image:linear-gradient(160deg,rgba(255,255,255,.04),rgba(255,255,255,0) 55%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.075);
+  display:grid;place-items:center;-webkit-appearance:none;appearance:none;outline:none;
+}
+.key::after{
+  content:"";position:absolute;inset:0;border-radius:50%;background:#fff;opacity:0;
+  transition:opacity .45s ease-out;pointer-events:none;
+}
+.key:active::after{opacity:.24;transition:none}
+.key.fn{
+  background-color:#595959;
+  background-image:radial-gradient(120% 120% at 30% 20%,rgba(255,255,255,.08),rgba(255,255,255,0) 60%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.key.op{
+  background-color:#f09b38;
+  background-image:linear-gradient(180deg,rgba(255,255,255,0) 60%,rgba(190,90,0,.18));
+  box-shadow:inset 0 0 0 1px rgba(255,200,130,.35);
+}
+.key:focus-visible{box-shadow:0 0 0 2px #fff}
+.key svg{width:8.6cqw;height:8.6cqw;display:block}
+.key svg.bs{width:9.1cqw;height:7.8cqw}
+/* Dolda inställningar */
+.sheet{
+  position:absolute;inset:0;background:var(--sheet);z-index:10;display:none;flex-direction:column;
+  -webkit-user-select:text;user-select:text;overflow-y:auto;font-size:17px;
+}
+.sheet.open{display:flex}
+.sheet header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 6px}
+.sheet h1{font-size:28px;font-weight:700;margin:0;letter-spacing:.01em}
+.done{background:none;border:0;color:var(--op);font:inherit;font-weight:600;font-size:17px;padding:8px 0;cursor:pointer}
+.group{background:var(--cell);border-radius:12px;margin:14px 16px 0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;min-height:46px}
+.row + .row{border-top:.5px solid var(--sep)}
+.row label{flex:1}
+.row input[type=text],.row input[type=number]{
+  background:none;border:0;color:var(--text);font:inherit;text-align:right;width:46%;outline:none;
+  -webkit-user-select:text;user-select:text;
+}
+.row input::placeholder{color:#636366}
+.note{color:var(--muted);font-size:13px;line-height:1.35;margin:7px 32px 0}
+.switch{position:relative;width:51px;height:31px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;width:100%;height:100%;cursor:pointer}
+.switch i{position:absolute;inset:0;border-radius:16px;background:#39393d;transition:background .2s;pointer-events:none}
+.switch i::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch input:checked + i{background:var(--green)}
+.switch input:checked + i::after{transform:translateX(20px)}
+.switch input:focus-visible + i{box-shadow:0 0 0 2px #fff}
+.link{background:none;border:0;color:var(--op);font:inherit;padding:0;cursor:pointer}
+.status{color:var(--muted)}
+#s-log .row{align-items:flex-start;font-variant-numeric:tabular-nums}
+#s-log .l{flex:1;word-break:break-word;font-size:22px;letter-spacing:.02em}
+#s-log .r{color:var(--muted);text-align:right;white-space:nowrap}
+#s-log small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+@media (prefers-reduced-motion:reduce){.key::after,.switch i,.switch i::after{transition:none}}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="topbar">
+    <button class="icon-btn" id="hist" aria-label="Historik">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.6"/><path d="M12 6.6v6H7.3"/></svg>
+    </button>
+    <button class="icon-btn" id="mode" aria-label="Läge">
+      <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3" fill="currentColor"/><g fill="#191919"><rect x="7.6" y="4.6" width="8.8" height="3.6" rx=".9"/><circle cx="8.6" cy="11.6" r="1.05"/><circle cx="12" cy="11.6" r="1.05"/><circle cx="15.4" cy="11.6" r="1.05"/><circle cx="8.6" cy="14.9" r="1.05"/><circle cx="12" cy="14.9" r="1.05"/><circle cx="15.4" cy="14.9" r="1.05"/><circle cx="8.6" cy="18.2" r="1.05"/><circle cx="12" cy="18.2" r="1.05"/><circle cx="15.4" cy="18.2" r="1.05"/></g></svg>
+    </button>
+  </div>
+
+  <div class="display" id="display">
+    <div class="expr" id="expr"></div>
+    <div class="main" id="main">0</div>
+  </div>
+
+  <div class="keys" id="keys">
+    <button class="key fn" data-k="back" aria-label="Radera"><svg class="bs" viewBox="0 0 28 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.2 1.5h13.3a3 3 0 0 1 3 3v15a3 3 0 0 1-3 3H10.2a3 3 0 0 1-2.3-1.1L1.7 13.7a2.6 2.6 0 0 1 0-3.4l6.2-7.7a3 3 0 0 1 2.3-1.1z"/><path d="M12.4 7.6l8.6 8.8M21 7.6l-8.6 8.8"/></svg></button>
+    <button class="key fn" data-k="ac">AC</button>
+    <button class="key fn" data-k="pct">%</button>
+    <button class="key op" data-k="÷" aria-label="Dividera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M1.7 12h20.6"/><circle cx="12" cy="4.7" r="1.9" fill="currentColor" stroke="none"/><circle cx="12" cy="19.3" r="1.9" fill="currentColor" stroke="none"/></svg></button>
+    <button class="key" data-k="7">7</button>
+    <button class="key" data-k="8">8</button>
+    <button class="key" data-k="9">9</button>
+    <button class="key op" data-k="×" aria-label="Multiplicera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 3.8l16.4 16.4M20.2 3.8L3.8 20.2"/></svg></button>
+    <button class="key" data-k="4">4</button>
+    <button class="key" data-k="5">5</button>
+    <button class="key" data-k="6">6</button>
+    <button class="key op" data-k="−" aria-label="Minus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M1.7 12h20.6"/></svg></button>
+    <button class="key" data-k="1">1</button>
+    <button class="key" data-k="2">2</button>
+    <button class="key" data-k="3">3</button>
+    <button class="key op" data-k="+" aria-label="Plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M1.7 12h20.6M12 1.7v20.6"/></svg></button>
+    <button class="key" data-k="sign" aria-label="Plus minus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M1.6 6.2h7M5.1 2.7v7M19.6 1.4L5.2 22.6M15.6 19.4h7.2"/></svg></button>
+    <button class="key" data-k="0">0</button>
+    <button class="key" data-k="dec">,</button>
+    <button class="key op" data-k="eq" aria-label="Lika med"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 8.2h17.4M3.3 15.8h17.4"/></svg></button>
+  </div>
+
+  <div class="sheet" id="sheet" role="dialog" aria-label="Dolt läge">
+    <header>
+      <h1>Dolt läge</h1>
+      <button class="done" id="done">Klar</button>
+    </header>
+
+    <div class="group" id="s-log"></div>
+    <p class="note">Varje tal som användaren har matat in sedan senaste nollställningen, ett per rad. Listan syns bara här, och räknaren ligger kvar orörd när du stänger.</p>
+
+    <div class="group">
+      <div class="row">
+        <label for="s-on">Aktivt</label>
+        <span class="switch"><input type="checkbox" id="s-on"><i></i></span>
+      </div>
+      <div class="row">
+        <label for="s-target">Resultat att visa</label>
+        <input type="text" id="s-target" inputmode="decimal" placeholder="t.ex. 1 234" autocomplete="off">
+      </div>
+      <div class="row">
+        <label for="s-n">Visas på tryck nummer</label>
+        <input type="number" id="s-n" inputmode="numeric" min="1" max="99" step="1">
+      </div>
+    </div>
+    <p class="note">Räknaren fungerar som vanligt tills du har tryckt på = så många gånger. Då visas ditt resultat i stället för det riktiga.</p>
+
+    <div class="group">
+      <div class="row">
+        <label for="s-adapt">Anpassa sista talet</label>
+        <span class="switch"><input type="checkbox" id="s-adapt"><i></i></span>
+      </div>
+      <div class="row">
+        <label for="s-exact">Visa exakt som skrivet</label>
+        <span class="switch"><input type="checkbox" id="s-exact"><i></i></span>
+      </div>
+      <div class="row">
+        <label for="s-repeat">Börja om efter visning</label>
+        <span class="switch"><input type="checkbox" id="s-repeat"><i></i></span>
+      </div>
+    </div>
+    <p class="note">Anpassa sista talet: inför det avgörande trycket matas rätt siffror in oavsett vilka sifferknappar du trycker på, så att uträkningen på skärmen stämmer med resultatet. Visa exakt som skrivet: behåller inledande nollor och hoppar över tusentalsmellanrum, till exempel för ett telefonnummer.</p>
+
+    <div class="group">
+      <div class="row">
+        <span class="status" id="s-status"></span>
+        <button class="link" id="s-reset">Nollställ</button>
+      </div>
+    </div>
+    <p class="note">Öppna den här sidan genom att hålla kvar fingret på räknarikonen uppe till höger eller klockan uppe till vänster.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var DEC = ',', GRP = '\u00A0';
+  var OPS = ['+','−','×','÷'];
+  var $ = function(id){ return document.getElementById(id); };
+  var elMain = $('main'), elExpr = $('expr'), elDisp = $('display');
+
+
+  /* ---------- inställningar ---------- */
+  var cfg = { enabled:false, target:'', n:1, adapt:true, exact:false, repeat:false };
+  try {
+    var saved = JSON.parse(localStorage.getItem('calc_cfg') || 'null');
+    if (saved && typeof saved === 'object') for (var k in cfg) if (k in saved) cfg[k] = saved[k];
+  } catch(e){}
+  function saveCfg(){ try { localStorage.setItem('calc_cfg', JSON.stringify(cfg)); } catch(e){} }
+
+  var count = 0, armed = true;
+  var log = [], forcedKeys = '';
+
+  /* ---------- räknarens tillstånd ---------- */
+  var tokens = [], entry = '', resultMode = false, lastResult = 0,
+      resultText = '0', exprLine = '', rep = null, forced = null;
+
+  function isOp(t){ return OPS.indexOf(t) !== -1; }
+  function numStr(n){ return String(parseFloat(n.toPrecision(12))); }
+  function digitsIn(s){ return s.replace(/\D/g,'').length; }
+
+  function evalT(t){
+    var stack = [parseFloat(t[0])];
+    for (var i = 1; i < t.length; i += 2){
+      var op = t[i], b = parseFloat(t[i+1]);
+      if (op === '×') stack[stack.length-1] *= b;
+      else if (op === '÷') stack[stack.length-1] /= b;
+      else stack.push(op === '+' ? b : -b);
+    }
+    var s = 0; for (var j = 0; j < stack.length; j++) s += stack[j];
+    return s;
+  }
+
+  function fmtRaw(raw){
+    if (/e|NaN|Infinity/i.test(raw) || digitsIn(raw) > 9) return fmtResult(parseFloat(raw));
+    var neg = raw.charAt(0) === '-', body = neg ? raw.slice(1) : raw;
+    var parts = body.split('.');
+    var i = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, GRP);
+    return (neg ? '−' : '') + i + (body.indexOf('.') !== -1 ? DEC + (parts[1] || '') : '');
+  }
+
+  function fmtResult(n){
+    if (!isFinite(n)) return 'Fel';
+    n = parseFloat(n.toPrecision(12));
+    var a = Math.abs(n);
+    if (a !== 0 && (a >= 1e9 || a < 1e-8)){
+      var p = n.toExponential(5).split('e');
+      var m = String(parseFloat(p[0])).replace('.', DEC).replace('-', '−');
+      return m + 'e' + String(parseInt(p[1], 10)).replace('-', '−');
+    }
+    var intLen = String(Math.trunc(a)).length;
+    var s = a.toFixed(Math.max(0, 9 - intLen));
+    if (s.indexOf('.') !== -1) s = s.replace(/\.?0+$/, '');
+    return fmtRaw((n < 0 && parseFloat(s) !== 0 ? '-' : '') + s);
+  }
+
+  function numbersOf(t){
+    var out = [];
+    for (var i = 0; i < t.length; i++) if (!isOp(t[i])) out.push(fmtRaw(t[i]));
+    return out;
+  }
+
+  function exprOf(t, tail){
+    var out = '';
+    for (var i = 0; i < t.length; i++){
+      if (isOp(t[i])) out += t[i];
+      else out += (i > 0 && t[i].charAt(0) === '-') ? '(' + fmtRaw(t[i]) + ')' : fmtRaw(t[i]);
+    }
+    if (tail) out += (t.length && tail.charAt(0) === '-') ? '(' + fmtRaw(tail) + ')' : fmtRaw(tail);
+    return out;
+  }
+
+  /* ---------- det dolda läget ---------- */
+  function parseTarget(){
+    return parseFloat(String(cfg.target).replace(/\s/g,'').replace(',', '.').replace('−','-'));
+  }
+  function targetText(){
+    var raw = String(cfg.target).trim();
+    var T = parseTarget();
+    if (cfg.exact || !isFinite(T)) return raw || '0';
+    return fmtResult(T);
+  }
+  function trickReady(){ return cfg.enabled && armed && String(cfg.target).trim() !== ''; }
+
+  // Löser ut vilket sista tal som ger målresultatet
+  function solve(T){
+    var f = function(x){ return evalT(tokens.concat([String(x)])); };
+    var lastOp = tokens[tokens.length-1], x;
+    if (lastOp !== '÷'){
+      var b = f(0), a = f(1) - b;
+      if (!a) return null;
+      x = (T - b) / a;
+    } else {
+      var f1 = f(1), f2 = f(2), c = 2 * (f1 - f2), b2 = f1 - c;
+      if (!c || T - b2 === 0) return null;
+      x = c / (T - b2);
+    }
+    if (!isFinite(x) || x <= 0) return null;
+    var s = String(parseFloat(x.toFixed(8)));
+    if (/e/i.test(s) || digitsIn(s) > 9) return null;
+    var check = f(parseFloat(s));
+    if (Math.abs(check - T) > 1e-6 * Math.max(1, Math.abs(T))) return null;
+    return s;
+  }
+
+  function tryForce(){
+    if (forced) return true;
+    if (!(trickReady() && cfg.adapt && count === cfg.n - 1)) return false;
+    if (resultMode || entry !== '' || tokens.length < 2 || !isOp(tokens[tokens.length-1])) return false;
+    var T = parseTarget();
+    if (!isFinite(T)) return false;
+    var s = solve(T);
+    if (!s) return false;
+    forced = { str:s, idx:0 };
+    return true;
+  }
+
+  /* ---------- knappar ---------- */
+  function clearAll(){
+    tokens = []; entry = ''; resultMode = false; lastResult = 0;
+    resultText = '0'; exprLine = ''; rep = null; forced = null; forcedKeys = '';
+  }
+
+  function pressDigit(d){
+    if (resultMode) clearAll();
+    if (tryForce()){
+      forcedKeys += d;
+      if (forced.idx < forced.str.length){
+        forced.idx++;
+        if (forced.str.charAt(forced.idx) === '.') forced.idx++;
+        entry = forced.str.slice(0, forced.idx);
+      }
+      return;
+    }
+    if (digitsIn(entry) >= 9) return;
+    if (entry === '0') entry = d;
+    else if (entry === '-0') entry = '-' + d;
+    else entry += d;
+  }
+
+  function pressDec(){
+    if (resultMode) clearAll();
+    if (forced) return;
+    if (entry === '' ) entry = '0.';
+    else if (entry === '-') entry = '-0.';
+    else if (entry.indexOf('.') === -1 && digitsIn(entry) < 9) entry += '.';
+  }
+
+  function normalize(e){ e = e.replace(/\.$/, ''); return (e === '-' || e === '') ? '0' : e; }
+
+  function pressOp(op){
+    if (resultMode){
+      tokens = [isFinite(lastResult) ? numStr(lastResult) : '0', op];
+      entry = ''; resultMode = false; forced = null; exprLine = '';
+      return;
+    }
+    if (entry !== ''){ tokens.push(normalize(entry)); tokens.push(op); entry = ''; forced = null; }
+    else if (tokens.length && isOp(tokens[tokens.length-1])) tokens[tokens.length-1] = op;
+    else tokens = ['0', op];
+  }
+
+  function pressEq(){
+    var val, line;
+    if (resultMode){
+      if (rep && isFinite(lastResult)){
+        var rt = [numStr(lastResult), rep.op, rep.operand];
+        val = evalT(rt); line = exprOf(rt);
+      } else { val = lastResult; line = exprLine; }
+    } else {
+      if (forced) entry = forced.str;
+      var t = tokens.slice();
+      if (forced) entry = forced.str;
+      if (entry !== '') t.push(normalize(entry));
+      else if (t.length && isOp(t[t.length-1])) t.pop();
+      if (!t.length) t = ['0'];
+      val = evalT(t);
+      line = t.length > 1 ? exprOf(t) : '';
+      rep = t.length >= 3 ? { op:t[t.length-2], operand:t[t.length-1] } : null;
+    }
+    var text = fmtResult(val);
+    var realText = text, keys = (!resultMode && forced) ? forcedKeys : '';
+    if (trickReady()){
+      count++;
+      if (count >= cfg.n){
+        text = targetText();
+        var T = parseTarget();
+        val = isFinite(T) ? T : 0;
+        if (cfg.repeat) count = 0; else armed = false;
+      }
+    }
+    var nums = resultMode ? (rep ? [fmtRaw(rep.operand)] : []) : numbersOf(t);
+    log.push({ nums: nums });
+    if (log.length > 30) log.shift();
+    forcedKeys = '';
+    tokens = []; entry = ''; forced = null;
+    resultMode = true; lastResult = val; resultText = text; exprLine = line;
+  }
+
+  function pressBack(){
+    if (resultMode) return;
+    if (forced){
+      forced.idx--;
+      if (forced.idx > 0 && forced.str.charAt(forced.idx - 1) === '.') forced.idx--;
+      if (forced.idx <= 0){ forced = null; entry = ''; }
+      else entry = forced.str.slice(0, forced.idx);
+      return;
+    }
+    if (entry !== ''){
+      entry = entry.slice(0, -1);
+      if (entry === '-') entry = '';
+      return;
+    }
+    if (tokens.length && isOp(tokens[tokens.length-1])){
+      tokens.pop();
+      entry = tokens.pop() || '';
+    }
+  }
+
+  function pressSign(){
+    if (forced) return;
+    if (resultMode){
+      if (isFinite(lastResult)){ lastResult = -lastResult; resultText = fmtResult(lastResult); }
+      return;
+    }
+    if (entry === '') return;
+    entry = entry.charAt(0) === '-' ? entry.slice(1) : '-' + entry;
+  }
+
+  function pressPct(){
+    if (forced) return;
+    if (resultMode){
+      if (isFinite(lastResult)){ lastResult = lastResult / 100; resultText = fmtResult(lastResult); }
+      return;
+    }
+    if (entry === '') return;
+    entry = numStr(parseFloat(normalize(entry)) / 100);
+  }
+
+  /* ---------- visning ---------- */
+  function fit(el){
+    el.style.fontSize = '';
+    var cs = getComputedStyle(elDisp);
+    var avail = elDisp.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var w = el.getBoundingClientRect().width;
+    if (w > avail && w > 0){
+      el.style.fontSize = (parseFloat(getComputedStyle(el).fontSize) * avail / w) + 'px';
+    }
+  }
+
+  function render(){
+    var mainText;
+    if (resultMode) mainText = resultText;
+    else {
+      mainText = exprOf(tokens, entry);
+      if (mainText === '') mainText = '0';
+    }
+    elMain.textContent = mainText;
+    elExpr.textContent = resultMode ? exprLine : '';
+    fit(elMain); fit(elExpr);
+  }
+
+  function handle(k){
+    if (/^\d$/.test(k)) pressDigit(k);
+    else if (k === 'dec') pressDec();
+    else if (isOp(k)) pressOp(k);
+    else if (k === 'eq') pressEq();
+    else if (k === 'back') pressBack();
+    else if (k === 'ac') clearAll();
+    else if (k === 'sign') pressSign();
+    else if (k === 'pct') pressPct();
+    render();
+  }
+
+  $('keys').addEventListener('click', function(e){
+    var b = e.target.closest('.key');
+    if (!b || !b.dataset.k) return;
+    handle(b.dataset.k);
+    b.blur();
+  });
+  document.addEventListener('touchstart', function(){}, { passive:true });
+  document.addEventListener('contextmenu', function(e){ if (!e.target.closest('.sheet')) e.preventDefault(); });
+  window.addEventListener('resize', render);
+
+  // Tangentbord (för dator)
+  var KEYMAP = { '+':'+', '-':'−', '*':'×', 'x':'×', '/':'÷', 'Enter':'eq', '=':'eq', 'Backspace':'back', 'Escape':'ac', ',':'dec', '.':'dec', '%':'pct' };
+  document.addEventListener('keydown', function(e){
+    if ($('sheet').classList.contains('open')) return;
+    var k = /^\d$/.test(e.key) ? e.key : KEYMAP[e.key];
+    if (!k) return;
+    e.preventDefault();
+    if (e.key === 'Escape'){ clearAll(); render(); return; }
+    handle(k);
+  });
+
+  /* ---------- dolda inställningar ---------- */
+  var sheet = $('sheet');
+  function updateStatus(){
+    var t = !cfg.enabled ? 'Avstängt'
+      : !armed ? 'Resultatet har visats'
+      : 'Tryck på = hittills: ' + count + ' av ' + cfg.n;
+    $('s-status').textContent = t;
+  }
+  function logRow(left, right, small){
+    var r = document.createElement('div'); r.className = 'row';
+    var l = document.createElement('span'); l.className = 'l'; l.textContent = left;
+    if (small){ var sm = document.createElement('small'); sm.textContent = small; l.appendChild(sm); }
+    var rt = document.createElement('span'); rt.className = 'r'; rt.textContent = right;
+    r.appendChild(l); r.appendChild(rt);
+    $('s-log').appendChild(r);
+  }
+  function renderLog(){
+    $('s-log').textContent = '';
+    var any = false;
+    log.forEach(function(e){ e.nums.forEach(function(n){ any = true; logRow(n, ''); }); });
+    if (!resultMode){
+      numbersOf(tokens).forEach(function(n){ any = true; logRow(n, ''); });
+      var e2 = entry !== '' ? fmtRaw(normalize(entry)) : (forced ? fmtRaw(forced.str.slice(0, forced.idx) || '0') : '');
+      if (e2){ any = true; logRow(e2, ''); }
+    }
+    if (!any) logRow('Inget inmatat ännu', '');
+  }
+  var cfgAtOpen = '';
+  function openSheet(){
+    $('s-on').checked = cfg.enabled;
+    $('s-target').value = cfg.target;
+    $('s-n').value = cfg.n;
+    $('s-adapt').checked = cfg.adapt;
+    $('s-exact').checked = cfg.exact;
+    $('s-repeat').checked = cfg.repeat;
+    updateStatus();
+    renderLog();
+    cfgAtOpen = JSON.stringify(cfg);
+    sheet.classList.add('open');
+  }
+  function readSheet(){
+    cfg.enabled = $('s-on').checked;
+    cfg.target = $('s-target').value.trim();
+    var n = parseInt($('s-n').value, 10);
+    cfg.n = isFinite(n) && n >= 1 ? Math.min(n, 99) : 1;
+    cfg.adapt = $('s-adapt').checked;
+    cfg.exact = $('s-exact').checked;
+    cfg.repeat = $('s-repeat').checked;
+    saveCfg();
+  }
+  $('done').addEventListener('click', function(){
+    readSheet();
+    if (JSON.stringify(cfg) !== cfgAtOpen){ count = 0; armed = true; log = []; clearAll(); }
+    sheet.classList.remove('open');
+    render();
+  });
+  $('s-reset').addEventListener('click', function(){
+    readSheet(); count = 0; armed = true; log = []; clearAll(); cfgAtOpen = JSON.stringify(cfg); updateStatus(); renderLog();
+  });
+  sheet.addEventListener('change', function(){ readSheet(); updateStatus(); });
+
+  function longPress(el){
+    var timer = null;
+    var cancel = function(){ if (timer){ clearTimeout(timer); timer = null; } };
+    el.addEventListener('pointerdown', function(){
+      cancel();
+      timer = setTimeout(function(){ timer = null; openSheet(); }, 650);
+    });
+    ['pointerup','pointerleave','pointercancel'].forEach(function(ev){ el.addEventListener(ev, cancel); });
+  }
+  longPress($('mode'));
+  longPress($('hist'));
+
+  render();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
