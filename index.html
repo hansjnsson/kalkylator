@@ -92,6 +92,7 @@ body{
 .key svg{width:8.6cqw;height:8.6cqw;display:block}
 .key svg.bs{width:9.1cqw;height:7.8cqw}
 /* Dolda inställningar */
+#hapticLabel{position:absolute;left:-9999px;width:0;height:0;opacity:0;pointer-events:none}
 .sheet{
   position:absolute;inset:0;background:var(--sheet);z-index:10;display:none;flex-direction:column;
   -webkit-user-select:text;user-select:text;overflow-y:auto;font-size:17px;
@@ -164,6 +165,8 @@ body{
     <button class="key" data-k="dec">,</button>
     <button class="key op" data-k="eq" aria-label="Lika med"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 8.2h17.4M3.3 15.8h17.4"/></svg></button>
   </div>
+
+  <label id="hapticLabel" aria-hidden="true"><input id="hapticSwitch" type="checkbox" switch></label>
 
   <div class="sheet" id="sheet" role="dialog" aria-label="Dolt läge">
     <header>
@@ -577,17 +580,29 @@ body{
   });
   sheet.addEventListener('change', function(){ readSheet(); updateStatus(); });
 
-  function longPress(el){
-    var timer = null;
+  function haptic(){
+    try { if (navigator.vibrate) navigator.vibrate(18); } catch(e){}
+    try { $('hapticLabel').click(); } catch(e){}   // iOS: switch-kontroll ger en liten vibration
+  }
+
+  function resetCount(){
+    count = 0; armed = true;
+    if (sheet.classList.contains('open')){ updateStatus(); renderLog(); }
+    haptic();
+  }
+
+  function longPress(el, action){
+    var timer = null, fired = false;
     var cancel = function(){ if (timer){ clearTimeout(timer); timer = null; } };
     el.addEventListener('pointerdown', function(){
-      cancel();
-      timer = setTimeout(function(){ timer = null; openSheet(); }, 650);
+      cancel(); fired = false;
+      timer = setTimeout(function(){ timer = null; fired = true; action(); }, 650);
     });
+    el.addEventListener('click', function(e){ if (fired){ e.preventDefault(); e.stopPropagation(); fired = false; } });
     ['pointerup','pointerleave','pointercancel'].forEach(function(ev){ el.addEventListener(ev, cancel); });
   }
-  longPress($('mode'));
-  longPress($('hist'));
+  longPress($('mode'), openSheet);   // räknarikonen uppe till höger: öppnar dolda menyn
+  longPress($('hist'), resetCount);  // klockan uppe till vänster: nollställer =-räkningen
 
   render();
 })();
