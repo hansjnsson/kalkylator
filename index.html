@@ -93,6 +93,33 @@ body{
 .key:focus-visible{box-shadow:0 0 0 2px #fff}
 .key svg{width:8.6cqw;height:8.6cqw;display:block}
 .key svg.bs{width:9.1cqw;height:7.8cqw}
+/* Lägesmenyn (bara kuliss, som i den riktiga räknaren) */
+.menu-backdrop{position:absolute;inset:0;z-index:4;display:none}
+.menu-backdrop.open{display:block}
+.menu{
+  position:absolute;top:.5cqw;right:3.4cqw;width:59cqw;z-index:5;padding:2.3cqw 0;border-radius:6.6cqw;
+  background:rgba(20,20,20,.92);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),0 2cqw 8cqw rgba(0,0,0,.5);
+  font-size:4cqw;line-height:4.56cqw;overflow:hidden;
+  transform-origin:calc(100% - 6.5cqw) 5.2cqw;transform:scale(.2);opacity:0;visibility:hidden;pointer-events:none;
+  transition:transform .2s ease-in,opacity .2s ease-in,visibility 0s .2s;
+}
+.menu.open{
+  transform:none;opacity:1;visibility:visible;pointer-events:auto;
+  transition:transform .3s cubic-bezier(.2,.9,.3,1.12),opacity .16s ease-out,visibility 0s;
+}
+.menu-item{
+  display:flex;align-items:center;width:100%;min-height:9.45cqw;padding:2.445cqw 4cqw 2.445cqw 0;
+  border:0;margin:0;background:none;color:#fff;font:inherit;text-align:left;cursor:pointer;
+  -webkit-appearance:none;appearance:none;outline:none;
+}
+.menu-item:active{background:rgba(255,255,255,.1)}
+.menu-ck{flex:none;width:9.2cqw;padding-left:4.4cqw;display:flex}
+.menu-ck svg{width:3.4cqw;height:3.4cqw;display:block}
+.menu-ic{flex:none;width:6.6cqw;margin-right:2.3cqw;display:grid;place-items:center;white-space:nowrap}
+.menu-ic svg{width:5cqw;height:5cqw;display:block}
+.menu-ic .fx{font-size:3.7cqw;letter-spacing:-.02em}
+.menu-sep{height:1px;background:rgba(255,255,255,.12);margin:2.5cqw 5.4cqw}
 /* Dolda inställningar */
 #hapticLabel{position:absolute;left:-9999px;width:0;height:0;opacity:0;pointer-events:none}
 .sheet{
@@ -126,7 +153,7 @@ body{
 #s-log .l{flex:1;word-break:break-word;font-size:22px;letter-spacing:.02em}
 #s-log .r{color:var(--muted);text-align:right;white-space:nowrap}
 #s-log small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
-@media (prefers-reduced-motion:reduce){.key::after,.switch i,.switch i::after{transition:none}.icon-btn.flash svg{animation:none}}
+@media (prefers-reduced-motion:reduce){.key::after,.switch i,.switch i::after{transition:none}.icon-btn.flash svg{animation:none}.menu,.menu.open{transition:none}}
 </style>
 </head>
 <body>
@@ -137,6 +164,31 @@ body{
     </button>
     <button class="icon-btn" id="mode" aria-label="Läge">
       <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3" fill="currentColor"/><g fill="#191919"><rect x="7.6" y="4.6" width="8.8" height="3.6" rx=".9"/><circle cx="8.6" cy="11.6" r="1.05"/><circle cx="12" cy="11.6" r="1.05"/><circle cx="15.4" cy="11.6" r="1.05"/><circle cx="8.6" cy="14.9" r="1.05"/><circle cx="12" cy="14.9" r="1.05"/><circle cx="15.4" cy="14.9" r="1.05"/><circle cx="8.6" cy="18.2" r="1.05"/><circle cx="12" cy="18.2" r="1.05"/><circle cx="15.4" cy="18.2" r="1.05"/></g></svg>
+    </button>
+  </div>
+
+  <div class="menu-backdrop" id="menuBack"></div>
+  <div class="menu" id="menu" role="menu" aria-label="Läge">
+    <button class="menu-item" role="menuitem">
+      <span class="menu-ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l5.5 6.5L20 4.5"/></svg></span>
+      <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6.5h7M6.5 3v7M14 5h7M14 8h7M3.8 14.8l5.4 5.4M9.2 14.8l-5.4 5.4M14 17.5h7"/><circle cx="17.5" cy="14.2" r=".95" fill="currentColor" stroke="none"/><circle cx="17.5" cy="20.8" r=".95" fill="currentColor" stroke="none"/></svg></span>
+      <span>Enkel</span>
+    </button>
+    <button class="menu-item" role="menuitem">
+      <span class="menu-ck"></span>
+      <span class="menu-ic"><span class="fx"><i>ƒ</i>(x)</span></span>
+      <span>Avancerad</span>
+    </button>
+    <button class="menu-item" role="menuitem">
+      <span class="menu-ck"></span>
+      <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3v18M3 14h18M4 20.5c5-1 6-5 7.5-8.5s4-7 9-8"/><text x="2.6" y="8.6" font-size="7" fill="currentColor" stroke="none">y</text><text x="17.2" y="22.6" font-size="7" fill="currentColor" stroke="none">x</text></svg></span>
+      <span>Matematikanteck-<br>ningar</span>
+    </button>
+    <div class="menu-sep"></div>
+    <button class="menu-item" role="menuitem">
+      <span class="menu-ck"></span>
+      <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7.5H3.5M7.5 3.5l-4 4 4 4M5 16.5h15.5M16.5 12.5l4 4-4 4"/></svg></span>
+      <span>Konvertera</span>
     </button>
   </div>
 
@@ -234,7 +286,7 @@ body{
 
 
   /* ---------- inställningar ---------- */
-  var APP_VERSION = '5 · 2026-10-05';
+  var APP_VERSION = '6 · 2026-10-05';
   var cfg = { enabled:false, target:'', n:1, adapt:true, exact:false, repeat:false };
   try {
     var saved = JSON.parse(localStorage.getItem('calc_cfg') || 'null');
@@ -522,6 +574,7 @@ body{
   var KEYMAP = { '+':'+', '-':'−', '*':'×', 'x':'×', '/':'÷', 'Enter':'eq', '=':'eq', 'Backspace':'back', 'Escape':'ac', ',':'dec', '.':'dec', '%':'pct' };
   document.addEventListener('keydown', function(e){
     if ($('sheet').classList.contains('open')) return;
+    if (menu.classList.contains('open')){ if (e.key === 'Escape') closeMenu(); return; }
     var k = /^\d$/.test(e.key) ? e.key : KEYMAP[e.key];
     if (!k) return;
     e.preventDefault();
@@ -607,17 +660,27 @@ body{
     flashClock(); haptic();
   }
 
-  function longPress(el, action){
+  // Lägesmenyn är bara kuliss: alla val stänger den utan att ändra något
+  var menu = $('menu'), menuBack = $('menuBack');
+  function openMenu(){ menu.classList.add('open'); menuBack.classList.add('open'); }
+  function closeMenu(){ menu.classList.remove('open'); menuBack.classList.remove('open'); }
+  menuBack.addEventListener('click', closeMenu);
+  menu.addEventListener('click', function(e){ if (e.target.closest('.menu-item')) closeMenu(); });
+
+  function longPress(el, action, tap){
     var timer = null, fired = false;
     var cancel = function(){ if (timer){ clearTimeout(timer); timer = null; } };
     el.addEventListener('pointerdown', function(){
       cancel(); fired = false;
       timer = setTimeout(function(){ timer = null; fired = true; action(); }, 650);
     });
-    el.addEventListener('click', function(e){ if (fired){ e.preventDefault(); e.stopPropagation(); fired = false; } });
+    el.addEventListener('click', function(e){
+      if (fired){ e.preventDefault(); e.stopPropagation(); fired = false; }
+      else if (tap) tap();
+    });
     ['pointerup','pointerleave','pointercancel'].forEach(function(ev){ el.addEventListener(ev, cancel); });
   }
-  longPress($('mode'), openSheet);   // räknarikonen uppe till höger: öppnar dolda menyn
+  longPress($('mode'), openSheet, openMenu);   // räknarikonen uppe till höger: långtryck öppnar dolda menyn, kort tryck kulissmenyn
   longPress($('hist'), resetCount);  // klockan uppe till vänster: nollställer =-räkningen
 
   render();

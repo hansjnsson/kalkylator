@@ -52,6 +52,9 @@ Nya filer som ska fungera offline läggs också till i `ASSETS` i `sw.js`.
 ### Dolt läge
 
 - Långtryck (650 ms) på räknarikonen uppe till höger öppnar inställningsbladet.
+- Kort tryck på samma ikon öppnar en kulissmeny (`#menu`: Enkel, Avancerad,
+  Matematikanteckningar, Konvertera) som efterliknar iOS-räknarens lägesmeny. Alla val stänger
+  den utan att ändra något.
 - Långtryck på klockan uppe till vänster nollställer `=`-räkningen och kvitterar med blink och
   vibration.
 - AC nollställer också `=`-räkningen (`pressAc`), men utan blink eller vibration.
