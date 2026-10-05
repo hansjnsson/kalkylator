@@ -193,7 +193,7 @@ body{
         <input type="number" id="s-n" inputmode="numeric" min="1" max="99" step="1">
       </div>
     </div>
-    <p class="note">Räknaren fungerar som vanligt tills du har tryckt på = så många gånger. Då visas ditt resultat i stället för det riktiga.</p>
+    <p class="note">Räknaren fungerar som vanligt tills du har tryckt på = så många gånger. Då visas ditt resultat i stället för det riktiga. AC börjar om räkningen från noll.</p>
 
     <div class="group">
       <div class="row">
@@ -234,7 +234,7 @@ body{
 
 
   /* ---------- inställningar ---------- */
-  var APP_VERSION = '4 · 2026-10-03';
+  var APP_VERSION = '5 · 2026-10-05';
   var cfg = { enabled:false, target:'', n:1, adapt:true, exact:false, repeat:false };
   try {
     var saved = JSON.parse(localStorage.getItem('calc_cfg') || 'null');
@@ -354,6 +354,9 @@ body{
     tokens = []; entry = ''; resultMode = false; lastResult = 0;
     resultText = '0'; exprLine = ''; rep = null; forced = null; forcedKeys = '';
   }
+
+  // AC nollställer även =-räkningen
+  function pressAc(){ clearAll(); count = 0; armed = true; }
 
   function pressDigit(d){
     if (resultMode) clearAll();
@@ -499,7 +502,7 @@ body{
     else if (isOp(k)) pressOp(k);
     else if (k === 'eq') pressEq();
     else if (k === 'back') pressBack();
-    else if (k === 'ac') clearAll();
+    else if (k === 'ac') pressAc();
     else if (k === 'sign') pressSign();
     else if (k === 'pct') pressPct();
     render();
@@ -522,7 +525,6 @@ body{
     var k = /^\d$/.test(e.key) ? e.key : KEYMAP[e.key];
     if (!k) return;
     e.preventDefault();
-    if (e.key === 'Escape'){ clearAll(); render(); return; }
     handle(k);
   });
 

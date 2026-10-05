@@ -54,6 +54,7 @@ Nya filer som ska fungera offline läggs också till i `ASSETS` i `sw.js`.
 - Långtryck (650 ms) på räknarikonen uppe till höger öppnar inställningsbladet.
 - Långtryck på klockan uppe till vänster nollställer `=`-räkningen och kvitterar med blink och
   vibration.
+- AC nollställer också `=`-räkningen (`pressAc`), men utan blink eller vibration.
 - Inställningarna ligger i `cfg` och sparas i `localStorage` under `calc_cfg`.
 - `count` räknar tryck på `=`. När `count` når `cfg.n` visas `cfg.target` i stället för det
   riktiga resultatet. `armed` blir falsk efteråt om inte `cfg.repeat` är på.
