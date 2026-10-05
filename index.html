@@ -229,7 +229,7 @@ body{
     </header>
 
     <div class="group" id="s-log"></div>
-    <p class="note">Varje tal som användaren har matat in sedan senaste nollställningen, ett per rad. Listan syns bara här, och räknaren ligger kvar orörd när du stänger.</p>
+    <p class="note">De fem senaste talen som användaren har matat in, det senaste överst. Listan syns bara här, och räknaren ligger kvar orörd när du stänger.</p>
 
     <div class="group">
       <div class="row">
@@ -286,7 +286,7 @@ body{
 
 
   /* ---------- inställningar ---------- */
-  var APP_VERSION = '6 · 2026-10-05';
+  var APP_VERSION = '7 · 2026-10-05';
   var cfg = { enabled:false, target:'', n:1, adapt:true, exact:false, repeat:false };
   try {
     var saved = JSON.parse(localStorage.getItem('calc_cfg') || 'null');
@@ -295,6 +295,7 @@ body{
   function saveCfg(){ try { localStorage.setItem('calc_cfg', JSON.stringify(cfg)); } catch(e){} }
 
   var count = 0, armed = true;
+  var LOG_MAX = 5;   // dolda läget visar bara de senaste talen
   var log = [], forcedKeys = '';
 
   /* ---------- räknarens tillstånd ---------- */
@@ -478,8 +479,7 @@ body{
       }
     }
     var nums = resultMode ? (rep ? [fmtRaw(rep.operand)] : []) : numbersOf(t);
-    log.push({ nums: nums });
-    if (log.length > 30) log.shift();
+    log = log.concat(nums).slice(-LOG_MAX);
     forcedKeys = '';
     tokens = []; entry = ''; forced = null;
     resultMode = true; lastResult = val; resultText = text; exprLine = line;
@@ -599,14 +599,15 @@ body{
   }
   function renderLog(){
     $('s-log').textContent = '';
-    var any = false;
-    log.forEach(function(e){ e.nums.forEach(function(n){ any = true; logRow(n, ''); }); });
+    var all = log.slice();
     if (!resultMode){
-      numbersOf(tokens).forEach(function(n){ any = true; logRow(n, ''); });
+      all = all.concat(numbersOf(tokens));
       var e2 = entry !== '' ? fmtRaw(normalize(entry)) : (forced ? fmtRaw(forced.str.slice(0, forced.idx) || '0') : '');
-      if (e2){ any = true; logRow(e2, ''); }
+      if (e2) all.push(e2);
     }
-    if (!any) logRow('Inget inmatat ännu', '');
+    // Senaste talet överst
+    all.slice(-LOG_MAX).reverse().forEach(function(n){ logRow(n, ''); });
+    if (!all.length) logRow('Inget inmatat ännu', '');
   }
   var cfgAtOpen = '';
   function openSheet(){

@@ -64,7 +64,7 @@ Nya filer som ska fungera offline läggs också till i `ASSETS` i `sw.js`.
 - Anpassa sista talet (`cfg.adapt`): inför det avgörande trycket räknar `solve` ut vilket
   sista tal som ger målresultatet, och `forced` matar in dess siffror oavsett vilka
   sifferknappar som trycks.
-- Bladet visar också `log`: alla tal som matats in sedan senaste nollställningen.
+- Bladet visar också `log`: de fem senast inmatade talen (`LOG_MAX`), det senaste överst.
 
 Räknaren ska i övrigt bete sig och se ut som en vanlig räknare. Inget i det synliga
 gränssnittet får avslöja det dolda läget.

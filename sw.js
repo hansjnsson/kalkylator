@@ -1,4 +1,4 @@
-const CACHE = 'kalkylator-v6';
+const CACHE = 'kalkylator-v7';
 const ASSETS = [
   './','./index.html','./manifest.webmanifest',
   './apple-touch-icon.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png'
