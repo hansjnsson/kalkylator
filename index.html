@@ -211,6 +211,10 @@ body{
 
     <div class="group">
       <div class="row">
+        <label>Version</label>
+        <span class="status" id="s-version"></span>
+      </div>
+      <div class="row">
         <span class="status" id="s-status"></span>
         <button class="link" id="s-reset">Nollställ</button>
       </div>
@@ -228,6 +232,7 @@ body{
 
 
   /* ---------- inställningar ---------- */
+  var APP_VERSION = '3 · 2026-10-03';
   var cfg = { enabled:false, target:'', n:1, adapt:true, exact:false, repeat:false };
   try {
     var saved = JSON.parse(localStorage.getItem('calc_cfg') || 'null');
@@ -554,6 +559,7 @@ body{
     $('s-adapt').checked = cfg.adapt;
     $('s-exact').checked = cfg.exact;
     $('s-repeat').checked = cfg.repeat;
+    $('s-version').textContent = APP_VERSION;
     updateStatus();
     renderLog();
     cfgAtOpen = JSON.stringify(cfg);
